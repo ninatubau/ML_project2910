@@ -36,6 +36,8 @@ start_time = datetime.datetime.now()
 loss, w_final = least_squares_GD(y, tx, w_initial, max_iters, gamma)
 #loss, w_final = least_squares_SGD(y, tx, w_initial, max_iters*100, gamma) #to work reasonably well, stochastic gradient descent needs more iterations than GD as we have a very small (1) batch size
 #loss, w_final = least_squares(y,tx) #for now, it doesn´t work with approach C (tx has a column that is all zeros and can´t find its inverse)
+#w_final=ridge_regression(y,tx,lambda_)
+
 end_time = datetime.datetime.now()
 
 # Print result

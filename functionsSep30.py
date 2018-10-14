@@ -1,10 +1,11 @@
 ##
 import numpy as np
+import os
 
 #HELPER FUNCTIONS
 def load_data_project(sub_sample = True):
     """Load data and convert it to the metrics system."""
-    path_dataset = "training.csv"
+    path_dataset = "train.csv"
     data = np.genfromtxt(
         path_dataset, delimiter=",", skip_header=1, usecols=range(30))
     labels = np.genfromtxt(
@@ -146,4 +147,18 @@ def least_squares(y, tx):
     w = np.linalg.inv(tx.T.dot(tx)).dot(tx.T).dot(y)
     loss = compute_loss(y,tx,w)
     return loss, w
+
+def ridge_regression(y,tx,lambda_):
+    """Computes ridge regression, returns weights"""
+    N=y.shape[1]
+    I=np.identity(N)
+    l=2*N*lambda_
+    a=tx.T.dot(tx)+l*I
+    b=tx.T.dot(y)
+    w_ridge=np.linalg.solve(a,b)
+    return w_ridge
+
+#def logistic_regression(y,tx,initial_w,max_iters,gamma):
+    """Logistic regression using gradient descent or SGD (we choosed GD)"""
+
 
