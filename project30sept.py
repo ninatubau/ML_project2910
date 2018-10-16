@@ -95,3 +95,5 @@ print(nerrors/ len(y))
 
 #Approach E: Simply exlude of training samples when a parameter is missing (really impractical in this case as for most samples at least
 #one parameter is missing) --> TODO
+ 
+#Apprach F: mean of group s and b and add perlin noise (coefficient of standard deviation ) -> to have a bracket
