@@ -1,20 +1,22 @@
 ##
 import numpy as np
 import os
+import random
 
 #HELPER FUNCTIONS
 def load_data_project(sub_sample = True):
     """Load data and convert it to the metrics system."""
     path_dataset = "train.csv"
     data = np.genfromtxt(
-        path_dataset, delimiter=",", skip_header=1, usecols=range(30))
+        path_dataset, delimiter=",",skip_header=1, usecols=range(2,32))
     labels = np.genfromtxt(
-        path_dataset, dtype='str', delimiter=",", skip_header=1, usecols=[32])
+        path_dataset, dtype='str', delimiter=",", skip_header=1,usecols=[1])
+
 
     # sub-sample
-    if sub_sample:
-        data = data[::100]
-        labels = labels[::100]
+    #if sub_sample:
+    #    data = data[::100]
+    #    labels = labels[::100]
         
     return data, labels
 
@@ -33,7 +35,10 @@ def standardize_columns(data, account_for_missing = True):
             std_x[i] = np.std(data[missing_values[:,i]!=1,i])
             x[:,i] = (data[:,i] - mean_x[i]) / std_x[i]
         x[missing_values] = 0
-       
+            #alpha=np.random.random(1)[0]
+            #x[missing_values] = mean_x[i]+alpha
+            #print('alpha',alpha)
+
     else: 
         missing_values = 0 
         mean_x = np.mean(data,0)
@@ -149,14 +154,15 @@ def least_squares(y, tx):
     return loss, w
 
 def ridge_regression(y,tx,lambda_):
-    """Computes ridge regression, returns weights"""
-    N=y.shape[1]
-    I=np.identity(N)
-    l=2*N*lambda_
-    a=tx.T.dot(tx)+l*I
-    b=tx.T.dot(y)
-    w_ridge=np.linalg.solve(a,b)
-    return w_ridge
+    """Computes ridge regression, returns weights"""  
+    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
+    a = tx.T.dot(tx) + aI
+    b = tx.T.dot(y)
+    w=np.linalg.solve(a, b)
+    loss=compute_loss(y,tx,w)
+    print(loss,w)
+    return loss,w
+
 
 #def logistic_regression(y,tx,initial_w,max_iters,gamma):
     """Logistic regression using gradient descent or SGD (we choosed GD)"""

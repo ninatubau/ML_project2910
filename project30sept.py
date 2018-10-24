@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
@@ -10,10 +11,12 @@ INPUT_MISSING = True
 import datetime
 from functionsSep30 import *
 
+
 data,labels = load_data_project()
 labels_int = np.zeros(labels.shape)
 labels_int[labels=='s']=1
 labels_int[labels=='b']=-1
+print(labels_int)
 
 x, mean_x, std_x, missing_values = standardize_columns(data,ACCOUNT_FOR_MISSING)   #if account_for_missing = true, approach A
 
@@ -25,7 +28,7 @@ y, tx = build_model_data1(x, labels_int, missing_values, INPUT_MISSING)   #If in
 #is false and input_missing are True. TODO --> solve this so an error is displayed by screen
 
 # Define the parameters of the algorithm.
-max_iters = 400
+max_iters = 10
 gamma = 0.05
 
 # Initialization
@@ -33,10 +36,14 @@ w_initial = np.zeros((tx.shape[1]))
 
 # Find the weigths and the loss using 1 / 6 approaches suggested
 start_time = datetime.datetime.now()
-loss, w_final = least_squares_GD(y, tx, w_initial, max_iters, gamma)
+#loss, w_final = least_squares_GD(y, tx, w_initial, max_iters, gamma)
 #loss, w_final = least_squares_SGD(y, tx, w_initial, max_iters*100, gamma) #to work reasonably well, stochastic gradient descent needs more iterations than GD as we have a very small (1) batch size
 #loss, w_final = least_squares(y,tx) #for now, it doesn´t work with approach C (tx has a column that is all zeros and can´t find its inverse)
-#w_final=ridge_regression(y,tx,lambda_)
+
+lambdas=np.logspace(-5,0,15)
+for lambda_ in lambdas:
+    loss,w_final=ridge_regression(y,tx,lambda_)
+    print(lambda_, w_final)
 
 end_time = datetime.datetime.now()
 
@@ -54,10 +61,9 @@ predictions[predictions<=0]=-1
 errors = np.zeros(predictions.shape)
 errors[predictions != y] = 1 
 nerrors = np.sum(errors)
-print('you have obtained: ')
-print(nerrors)
-print('in percentage: ')
-print(nerrors/ len(y))
+percentage=nerrors/len(y)
+print('you have obtained {n} errors: = {p}%'.format(n=nerrors,p=percentage))
+
 
 
 ###################################################
