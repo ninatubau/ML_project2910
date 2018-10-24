@@ -4,21 +4,24 @@ import os
 import random
 
 #HELPER FUNCTIONS
-def load_data_project(sub_sample = True):
+def load_data_project(path_dataset,sub_sample = True):
     """Load data and convert it to the metrics system."""
-    path_dataset = "train.csv"
+
     data = np.genfromtxt(
         path_dataset, delimiter=",",skip_header=1, usecols=range(2,32))
-    labels = np.genfromtxt(
-        path_dataset, dtype='str', delimiter=",", skip_header=1,usecols=[1])
+    
+    if(path_dataset=="train.csv"):
+        labels = np.genfromtxt(
+            path_dataset, dtype='str', delimiter=",", skip_header=1,usecols=[1])
+        return data, labels
 
-
+    else:
+        return data
     # sub-sample
     #if sub_sample:
     #    data = data[::100]
     #    labels = labels[::100]
-        
-    return data, labels
+
 
 def standardize_columns(data, account_for_missing = True):
     """Standardize the original data set."""
@@ -36,7 +39,7 @@ def standardize_columns(data, account_for_missing = True):
             x[:,i] = (data[:,i] - mean_x[i]) / std_x[i]
         x[missing_values] = 0
             #alpha=np.random.random(1)[0]
-            #x[missing_values] = mean_x[i]+alpha
+            #x[missing_values] = mean_x[i]+alpha*std_x[i]
             #print('alpha',alpha)
 
     else: 
@@ -160,8 +163,22 @@ def ridge_regression(y,tx,lambda_):
     b = tx.T.dot(y)
     w=np.linalg.solve(a, b)
     loss=compute_loss(y,tx,w)
-    print(loss,w)
     return loss,w
+
+def predictions(tx,w_final):
+    """Predicts the labels """
+    predictions = tx.dot(w_final)
+    predictions[predictions>0] = 1
+    predictions[predictions<=0]=-1
+    return predictions
+
+def error_predicting(predictions,y):
+    """Computes the error between the predicted value and the real one"""
+    errors = np.zeros(predictions.shape)
+    errors[predictions != y] = 1 
+    nerrors = np.sum(errors)
+    percentage=nerrors/len(y)
+    print('you have obtained {n} errors: = {p}%'.format(n=nerrors,p=percentage))
 
 
 #def logistic_regression(y,tx,initial_w,max_iters,gamma):

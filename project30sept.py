@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import csv
+
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
@@ -12,7 +14,7 @@ import datetime
 from functionsSep30 import *
 
 
-data,labels = load_data_project()
+data,labels = load_data_project(path_dataset = "train.csv")
 labels_int = np.zeros(labels.shape)
 labels_int[labels=='s']=1
 labels_int[labels=='b']=-1
@@ -43,7 +45,6 @@ start_time = datetime.datetime.now()
 lambdas=np.logspace(-5,0,15)
 for lambda_ in lambdas:
     loss,w_final=ridge_regression(y,tx,lambda_)
-    print(lambda_, w_final)
 
 end_time = datetime.datetime.now()
 
@@ -52,18 +53,23 @@ exection_time = (end_time - start_time).total_seconds()
 
 print("Gradient Descent: execution time={t:.3f} seconds".format(t=exection_time))
 
-#check capacity of network to predict output
-#score: (we will need to use cross validation in the future, but for now)
+print('shape of tx',tx.shape)
 
-predictions = tx.dot(w_final)
-predictions[predictions>0] = 1
-predictions[predictions<=0]=-1
-errors = np.zeros(predictions.shape)
-errors[predictions != y] = 1 
-nerrors = np.sum(errors)
-percentage=nerrors/len(y)
-print('you have obtained {n} errors: = {p}%'.format(n=nerrors,p=percentage))
+predictions_train=predictions(tx,w_final)
+error_predicting(predictions_train,y)
 
+#loading test data
+data_test=load_data_project(path_dataset = "test.csv")
+x_test, mean_x_test, std_x_test, missing_values = standardize_columns(data_test,ACCOUNT_FOR_MISSING)
+x_test = np.concatenate((np.ones((x_test.shape[0],1)), x_test, missing_values),1)
+predictions_test=predictions(x_test,w_final)
+
+
+#print(predictions_test.shape)
+
+#prediction test data
+#prediction_test = data_test.dot(w_final)
+#prediction_test[prediction_test]
 
 
 ###################################################
