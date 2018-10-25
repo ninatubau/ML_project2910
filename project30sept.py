@@ -18,7 +18,6 @@ data,labels = load_data_project(path_dataset = "train.csv")
 labels_int = np.zeros(labels.shape)
 labels_int[labels=='s']=1
 labels_int[labels=='b']=-1
-print(labels_int)
 
 x, mean_x, std_x, missing_values = standardize_columns(data,ACCOUNT_FOR_MISSING)   #if account_for_missing = true, approach A
 
@@ -53,7 +52,6 @@ exection_time = (end_time - start_time).total_seconds()
 
 print("Gradient Descent: execution time={t:.3f} seconds".format(t=exection_time))
 
-print('shape of tx',tx.shape)
 
 predictions_train=predictions(tx,w_final)
 error_predicting(predictions_train,y)
@@ -63,13 +61,23 @@ data_test=load_data_project(path_dataset = "test.csv")
 x_test, mean_x_test, std_x_test, missing_values = standardize_columns(data_test,ACCOUNT_FOR_MISSING)
 x_test = np.concatenate((np.ones((x_test.shape[0],1)), x_test, missing_values),1)
 predictions_test=predictions(x_test,w_final)
+print(predictions_test.shape)
+#get ids from tast file
+ids=np.genfromtxt(
+        "test.csv", delimiter=",",skip_header=1, usecols=[0])
+
+pred=np.column_stack((ids.astype(int),predictions_test.astype(int)))
 
 
-#print(predictions_test.shape)
+header='%s,%s'%('Id','Predictions')
+np.savetxt("sample-submission.csv", pred, delimiter=",", fmt='%2.d', header=header)
 
-#prediction test data
-#prediction_test = data_test.dot(w_final)
-#prediction_test[prediction_test]
+
+
+
+
+
+
 
 
 ###################################################
