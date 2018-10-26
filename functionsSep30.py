@@ -2,6 +2,7 @@
 import numpy as np
 import os
 import random
+import matplotlib.pyplot as plt
 
 #HELPER FUNCTIONS
 def load_data_project(path_dataset,sub_sample = True):
@@ -66,8 +67,11 @@ def build_model_data1(data, labels, missing_values, input_missing = False):
 def compute_loss(y, tx, w):
     """Calculate the loss using MSE
     """
-    f_x = tx.dot(w)
-    return sum(pow(y-f_x,2))
+    #f_x = tx.dot(w)
+    #return sum(pow(y-f_x,2))
+    e = y - tx.dot(w)
+    mse = e.dot(e) / (2 * len(e))
+    return mse
 
 def compute_gradient(y, tx, w):
     """Compute the gradient."""
@@ -179,6 +183,63 @@ def error_predicting(predictions,y):
     nerrors = np.sum(errors)
     percentage=nerrors/len(y)
     print('you have obtained {n} errors: = {p}%'.format(n=nerrors,p=percentage))
+
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+def cross_validation(y, x, k_indices, k, lambda_, degree):
+    """return the loss of ridge regression.""" 
+    x_te=[]
+    x_tr=[]
+    y_te=[]
+    y_tr=[]
+    loss_tr = []
+    loss_te = []
+    
+    for i in range(k):
+        x_te.extend(x[k_indices[i]])
+        y_te.extend(y[k_indices[i]])
+        for j in range(k):
+            if (j!=i):
+                x_tr.extend(x[k_indices[j]])
+                y_tr.extend(y[k_indices[j]])
+        
+        tx_tr = build_poly(x_tr, degree)
+        tx_te = build_poly(x_te, degree)
+        loss,w_final = ridge_regression(y_tr, tx_tr, lambda_)
+        loss_tr.append(2*compute_loss(y_tr, tx_tr, w_final))
+        loss_te.append(2*compute_loss(y_te, tx_te, w_final))
+        
+    loss_tr_mean=np.mean(loss_tr)
+    loss_te_mean=np.mean(loss_te)
+    return loss_tr_mean, loss_te_mean
+
+def cross_validation_visualization(lambds, mse_tr, mse_te):
+    """visualization the curves of mse_tr and mse_te."""
+    plt.figure()
+    plt.semilogx(lambds, mse_tr, marker=".", color='b', label='train error')
+    plt.semilogx(lambds, mse_te, marker=".", color='r', label='test error')
+    plt.xlabel("lambda")
+    plt.ylabel("rmse")
+    plt.title("cross validation")
+    plt.legend(loc=2)
+    plt.grid(True)
+    plt.savefig("cross_validation")
+    plt.show()
+
+def build_poly(x, degree):
+    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+    poly = np.ones((len(x), 1))
+    for deg in range(1, degree+1):
+        poly = np.c_[poly, np.power(x, deg)]
+    return poly
 
 
 #def logistic_regression(y,tx,initial_w,max_iters,gamma):

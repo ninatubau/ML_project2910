@@ -37,22 +37,40 @@ w_initial = np.zeros((tx.shape[1]))
 
 # Find the weigths and the loss using 1 / 6 approaches suggested
 start_time = datetime.datetime.now()
-#loss, w_final = least_squares_GD(y, tx, w_initial, max_iters, gamma)
+loss, w_final = least_squares_GD(y, tx, w_initial, max_iters, gamma)
 #loss, w_final = least_squares_SGD(y, tx, w_initial, max_iters*100, gamma) #to work reasonably well, stochastic gradient descent needs more iterations than GD as we have a very small (1) batch size
 #loss, w_final = least_squares(y,tx) #for now, it doesn´t work with approach C (tx has a column that is all zeros and can´t find its inverse)
 
-lambdas=np.logspace(-5,0,15)
-for lambda_ in lambdas:
-    loss,w_final=ridge_regression(y,tx,lambda_)
+#lambdas=np.logspace(-5,0,15)
+#for lambda_ in lambdas:
+#    loss,w_final=ridge_regression(y,tx,lambda_)
 
-end_time = datetime.datetime.now()
+#end_time = datetime.datetime.now()
 
 # Print result
-exection_time = (end_time - start_time).total_seconds()
+#exection_time = (end_time - start_time).total_seconds()
 
-print("Gradient Descent: execution time={t:.3f} seconds".format(t=exection_time))
+#print("Gradient Descent: execution time={t:.3f} seconds".format(t=exection_time))
 
 
+#cross validation
+seed=1
+degree=7
+k_fold=4
+k_indices=build_k_indices(y, k_fold,seed)
+k=k_indices.shape[0]
+rmse_tr=[]
+rmse_te=[]
+lambdas=np.logspace(-5,0,3)
+for lambda_ in lambdas:
+	print(lambda_)
+	loss_tr,loss_te=cross_validation(y,tx,k_indices,k,lambda_,degree)
+	rmse_tr.append(loss_tr)
+	rmse_te.append(loss_te)
+cross_validation_visualization(lambdas, rmse_tr, rmse_te)
+print('rmse training',rmse_tr,'rmse testing',rmse_te)
+
+#prediction on train data and plotting the error
 predictions_train=predictions(tx,w_final)
 error_predicting(predictions_train,y)
 
@@ -60,17 +78,21 @@ error_predicting(predictions_train,y)
 data_test=load_data_project(path_dataset = "test.csv")
 x_test, mean_x_test, std_x_test, missing_values = standardize_columns(data_test,ACCOUNT_FOR_MISSING)
 x_test = np.concatenate((np.ones((x_test.shape[0],1)), x_test, missing_values),1)
+
 predictions_test=predictions(x_test,w_final)
-print(predictions_test.shape)
+print('shape of predictions',predictions_test.shape)
+
 #get ids from tast file
 ids=np.genfromtxt(
         "test.csv", delimiter=",",skip_header=1, usecols=[0])
+print('shape of ids',ids.shape)
 
 pred=np.column_stack((ids.astype(int),predictions_test.astype(int)))
 
 
 header='%s,%s'%('Id','Predictions')
 np.savetxt("sample-submission.csv", pred, delimiter=",", fmt='%2.d', header=header)
+
 
 
 
